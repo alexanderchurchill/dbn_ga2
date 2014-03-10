@@ -11,10 +11,11 @@ class Deep_dA(object):
     Denoising Autoencoders
     """ 
     def __init__(self, input=None, n_visible=784, n_hidden=[500,500],
-        W=None, hbias=None, vbias=None, numpy_rng=None,theano_rng=None):
+        W=None, hbias=None, vbias=None, numpy_rng=None,theano_rng=None,squared_err=False):
         self.n_visible = n_visible
         self.n_hidden = n_hidden
         self.n_layers = len(n_hidden)
+        self.squared_err = squared_err
         assert (self.n_layers > 0)
         if numpy_rng is None:
             # create a number generator
@@ -96,13 +97,19 @@ class Deep_dA(object):
         self.tilde_input = self.get_corrupted_input(self.input, corruption_level)
         self.h = self.forward_pass(self.tilde_input)
         self.z = self.reconstruction_pass(self.h)
-        self.L = -T.sum(self.input * T.log(self.z) + (1 - self.input) * T.log(1 - self.z), axis=1)
         #self.l1 = abs(self.W).sum()
         self.l2 = 0.
         for i in range(self.n_layers):
           self.l2 += abs(self.W[i]**2).sum()
-        self.cost = T.mean(self.L) + 0.001*self.l2
-        self.sample = self.theano_rng.binomial(size=self.input.shape,n=1,p=self.z)
+        if not self.squared_err:
+          print 'Building binary cross-entropy cost function.'
+          self.L = -T.sum(self.input * T.log(self.z) + (1 - self.input) * T.log(1 - self.z), axis=1)
+          self.cost = T.mean(self.L) + 0.001*self.l2
+          self.sample = self.theano_rng.binomial(size=self.input.shape,n=1,p=self.z)
+        else:
+          self.L = T.sum((sel.x-self.y)**2,axis=1)
+          self.cost = T.mean(self.L) + 0.001*self.l2 #Should we keep this?
+          self.sample = self.z
 
     def build_sampler(self,k=20):
         samples,updates = theano.scan(lambda v:self.one_step(v),outputs_info=[self.input],
