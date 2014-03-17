@@ -129,7 +129,7 @@ class LeftOnes(object):
         # pdb.set_trace()
         train_set = SequenceDataset(train_data,batch_size=20,number_batches=None)
         sgd_optimizer(self.dA.params,[self.dA.input],self.dA.cost,train_set,lr=lr,
-                      num_epochs=num_epochs,save=True,output_folder=output_folder,iteration=iteration)
+                      num_epochs=num_epochs,save=False,output_folder=output_folder,iteration=iteration)
 
     def train_RBM(self,data,num_epochs=200,lr=0.1,output_folder="",):
         train_data = data
@@ -666,7 +666,7 @@ class CF1(HIFFProblem):
         super(HIFFProblem, self).__init__(corruption_level=corruption_level)
         print self.max_zeros([1]*128)
         self.rr_mask = np.array(np.random.binomial(1,0.5,64),"b")
-        self.MAXSAT = MAXSAT()
+        # self.MAXSAT = MAXSAT()
         self.fitness_cache = {}
 
     @cached_string

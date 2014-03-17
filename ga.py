@@ -288,6 +288,50 @@ class MDimKnapsack(GA):
     #     individual[:] = output[0][:]
     #     return individual
 
+class Dec3(GA):
+    def __init__(self,):
+        super(Dec3, self).__init__()
+        creator.create("FitnessMax", base.Fitness, weights=(1.0,))
+        creator.create("Individual", list, fitness=creator.FitnessMax)
+        self.pop_size = 300
+        self.mut_rate = 1.0
+        self.cross_rate = 0.9
+        self.generations = 2000
+
+        self.N = 120
+        self.toolbox = base.Toolbox()
+        # Attribute generator
+        self.toolbox.register("attr_bool", random.randint, 0, 1)
+        # Structure initializers
+        self.toolbox.register("individual", tools.initRepeat, creator.Individual, 
+            self.toolbox.attr_bool, self.N)
+        self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
+
+        # Operator registering
+        self.toolbox.register("evaluate", self.fitness_function,)
+        self.toolbox.register("mate", tools.cxTwoPoints)
+        self.toolbox.register("mutate", self.mutate, indpb=float(1.0/self.N))
+        self.toolbox.register("select", tools.selTournament, tournsize=self.tournament_size)
+
+        self.genotypes_history = Genotypes(min=False)
+
+    def dec3_trap(self,individual):
+        u = sum(individual)
+        if u == 0:
+            return 0.9
+        if u == 1:
+            return 0.8
+        if u == 2:
+            return 0
+        if u == 3:
+            return 1
+
+    def fitness_function(self,individual):
+        fitness = 0
+        for i in range(0,len(individual),3):
+            fitness += self.dec3_trap(individual[i:i+3])
+        return fitness,
+
 class Sphere(GA):
     def __init__(self):
         super(Sphere, self).__init__()
@@ -297,17 +341,17 @@ class Sphere(GA):
         self.mut_rate = 1.0
         self.cross_rate = 0.1
         self.pop_size = 500
-        self.N = 100
+        self.N = 20
         self.toolbox = base.Toolbox()
         # Attribute generator
-        self.toolbox.register("attr_float", random.uniform, -3, 3)
+        self.toolbox.register("attr_float", random.uniform, -1, 1)
         self.toolbox.register("individual", tools.initRepeat, creator.Individual, self.toolbox.attr_float, self.N)
         self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
 
         # Operator registering
         self.toolbox.register("evaluate", benchmarks.sphere)
         self.toolbox.register("mate", tools.cxTwoPoints)
-        self.toolbox.register("mutate", self.mutate, hi=3,lo=-3,mu=0,sigma=0.1,indpb=1.0/self.N)
+        self.toolbox.register("mutate", self.mutate, hi=1,lo=-1,mu=0,sigma=0.01,indpb=1.0/self.N)
         self.toolbox.register("select", tools.selTournament, tournsize=self.tournament_size)
 
         self.genotypes_history = Genotypes(min=True)
@@ -330,9 +374,9 @@ class Rosenbrock(Sphere):
         creator.create("Individual", list, fitness=creator.FitnessMin)
         self.generations = 10000
         self.mut_rate = 1.0
-        self.cross_rate = 0.1
-        self.pop_size = 500
-        self.N = 100
+        self.cross_rate = 0.9
+        self.pop_size = 200
+        self.N = 50
 
         self.toolbox = base.Toolbox()
         # Attribute generator
@@ -354,9 +398,9 @@ class Rastrigin(Sphere):
         creator.create("Individual", list, fitness=creator.FitnessMin)
         self.generations = 10000
         self.mut_rate = 1.0
-        self.cross_rate = 0.1
-        self.pop_size = 500
-        self.N = 100
+        self.cross_rate = 0.9
+        self.pop_size = 200
+        self.N = 50
 
         self.toolbox = base.Toolbox()
         # Attribute generator
@@ -367,7 +411,7 @@ class Rastrigin(Sphere):
         # Operator registering
         self.toolbox.register("evaluate", benchmarks.rastrigin)
         self.toolbox.register("mate", tools.cxTwoPoints)
-        self.toolbox.register("mutate", self.mutate, hi=5.12,lo=-5.12,mu=0,sigma=0.01,indpb=1.0/self.N)
+        self.toolbox.register("mutate", self.mutate, hi=5.12,lo=-5.12,mu=0,sigma=0.001,indpb=1.0/self.N)
         self.toolbox.register("select", tools.selTournament, tournsize=self.tournament_size)
 
 class Experiment(object):
@@ -406,6 +450,8 @@ class Experiment(object):
                 self.ga = MDimKnapsack("knapsack_400.pkl")
             elif test == "knapsack_500":
                 self.ga = MDimKnapsack("knapsack_500.pkl")
+            elif test == "dec3":
+                self.ga = Dec3()
 
     def run(self,test,ga):
         for i in range(self.start,self.end):
@@ -416,7 +462,7 @@ class Experiment(object):
             self.ga.run(path = path,experiment=i)
 
 if __name__ == "__main__":
-    name = "knapsack_c500_p_100"
-    test = "knapsack_500"
+    name = "ga_sphere"
+    test = "dec3"
     e = Experiment(name,no_runs=10,start=0,end=10,test=test)
     e.run(test=test,ga=None)

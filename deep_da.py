@@ -107,8 +107,9 @@ class Deep_dA(object):
           self.cost = T.mean(self.L) + 0.001*self.l2
           self.sample = self.theano_rng.binomial(size=self.input.shape,n=1,p=self.z)
         else:
-          self.L = T.sum((sel.x-self.y)**2,axis=1)
-          self.cost = T.mean(self.L) + 0.001*self.l2 #Should we keep this?
+          print 'Building squared_err.'
+          self.L = T.sum((self.input-self.z)**2,axis=1)
+          self.cost = T.mean(self.L) + 0.0001*self.l2 #Should we keep this?
           self.sample = self.z
 
     def build_sampler(self,k=20):
@@ -123,6 +124,26 @@ class Deep_dA(object):
         sample = self.theano_rng.binomial(size=self.input.shape,n=1,p=out)
         sample = T.cast(sample,dtype=theano.config.floatX)
         return sample
+
+
+class Deep_dA_cont(Deep_dA):
+    def get_corrupted_input(self, input, corruption_level):
+       """ This function keeps ``1-corruption_level`` entries of the inputs the same
+       and zero-out randomly selected subset of size ``coruption_level``
+       Note : first argument of theano.rng.binomial is the shape(size) of
+              random numbers that it should produce
+              second argument is the number of trials
+              third argument is the probability of success of any trial
+
+               this will produce an array of 0s and 1s where 1 has a probability of
+               1 - ``corruption_level`` and 0 with ``corruption_level``
+       """
+       mask = self.theano_rng.binomial(size=input.shape, n=1, p=1-corruption_level,dtype=theano.config.floatX) 
+       input_flip = input*mask
+       #input_flip = theano.printing.Print('Printing flipped input')(input_flip)
+       return input_flip
+
+
 if __name__ == '__main__':
 
     dda = Deep_dA(n_visible=500,n_hidden=[100,])

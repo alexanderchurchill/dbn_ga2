@@ -8,15 +8,15 @@ def create_text(command):
         text += "{0}".format(command)
         return text
 
-for pop_size in [500,600,700]:
+for pop_size in [500,600,700,1000]:
         for lim_percentage in [10,20]:
-                for num_epochs in [50,100]:
-                        for lr in [0.1]:
+                for num_epochs in [10,25,50]:
+                        for lr in [0.1,0.01,0.001]:
                                 for online_training in [1]:
                                         for unique_training in [1]:
                                                 for sample_rate in [0]:
-                                                        for hiddens in [100,200,300,400]:
-                                                                for corruption_level in [0.1,0.2,0.8,0.9]:
+                                                        for hiddens in [10,25,50,100]:
+                                                                for corruption_level in [0.1,0.2,0.5,0.8,0.9]:
                                                                         for use_good_strings in [1]:
                                                                                 for trials in range(0,5):
                                                                                         command = "python2.6 rbm_solver.py {0} {1} 20 {2} {3} {4} {5} {6} {7} {8} {9} {10}".format(
